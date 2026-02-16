@@ -1,0 +1,109 @@
+body {
+  font-family: sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 20px;
+  /* background-color: #f0f0f0; */
+}
+h1 {
+  color: #333;
+}
+.controls {
+  margin-bottom: 20px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.controls button {
+  padding: 10px 15px;
+  font-size: 1em;
+  cursor: pointer;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+  background-color: #fff;
+  transition: background-color 0.2s;
+}
+.controls button:hover {
+  background-color: #e0e0e0;
+}
+.color-buttons button {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 2px solid #ccc;
+  cursor: pointer;
+}
+#red {
+  background-color: red;
+}
+#blue {
+  background-color: blue;
+}
+#green {
+  background-color: green;
+}
+#black {
+  background-color: black;
+}
+
+.figure-palette {
+  background-color: #e9e9e9;
+  padding: 15px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  text-align: center;
+}
+.figure-palette img {
+  width: 60px;
+  height: 60px;
+  margin: 5px;
+  cursor: grab;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+}
+.figure-palette img:active {
+  cursor: grabbing;
+}
+
+/* Estilos para el estado de carga de imágenes (del código anterior) */
+#imageLoadStatus {
+  margin-top: 10px;
+  font-size: 0.9em;
+  color: #666;
+}
+.figure-palette img.loading {
+  border: 2px dashed orange;
+}
+.figure-palette img.loaded {
+  border: 2px solid rgb(217, 214, 214);
+}
+.figure-palette img.error {
+  border: 2px solid red;
+}
+
+canvas {
+  border: 2px solid #333;
+  background-color: #fff;
+  cursor: crosshair; /* Cursor por defecto para dibujar */
+  touch-action: none; /* Crucial para evitar el scroll y zoom en móviles */
+}
+
+/* Clase para el cursor de movimiento */
+canvas.move-cursor {
+  cursor: grab;
+}
+canvas.move-cursor:active {
+  cursor: grabbing;
+}
+
+/* Clase para el cursor del borrador */
+canvas.eraser-cursor {
+  cursor:
+    url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24"><path fill="rgba(0, 0, 0, 0.7)" d="M16.2 3.8L12 8l4.2 4.2 3.8-3.8-4.2-4.2zm-4.2 4.2L3 17l4 4 9-9-4-4zM20.7 7l-1.9-1.9L16.2 9.8 18.1 11.7l2.6-2.6z"/></svg>')
+      12 12,
+    auto;
+  /* Un SVG de un borrador, puedes cambiarlo */
+}

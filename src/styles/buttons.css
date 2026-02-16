@@ -1,0 +1,68 @@
+@media print {
+  /* Oculta el botón y cualquier otro elemento no deseado al imprimir */
+  .no-print {
+    display: none !important;
+  }
+
+  @page {
+    size: letter; /* O 'A4' según tu región */
+    margin: 10mm; /* Quitamos los márgenes automáticos del navegador */
+  }
+
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    background-color: white !important;
+  }
+
+  .print-col {
+    flex: 0 0 25% !important; /* Esto forzará 4 items por fila */
+    max-width: 25% !important;
+    padding: 5px !important;
+  }
+
+  .print-container {
+    width: 100%; /* Ocupa el ancho del papel */
+    max-width: 210mm; /* Límite de ancho para que no se estire de más */
+    margin: 0 auto;
+    padding: 0;
+    box-sizing: border-box;
+    transform: scale(1); /* Asegura que no haya escalado extraño */
+  }
+  @media print {
+    /* Asegura que el contenedor use todo el ancho disponible */
+    .print-container {
+      width: 100% !important;
+      max-width: none !important;
+      margin: 0 !important;
+      padding: 10mm !important; /* Margen físico para la impresora */
+    }
+
+    /* Fuerza a los elementos de la fila a comportarse como 3 columnas */
+    .print-container .row-cols-md-3 > * {
+      flex: 0 0 auto !important;
+      width: 33.33333333% !important; /* Esto garantiza las 3 columnas */
+    }
+
+    /* Evita que las tarjetas se corten entre páginas */
+    .card {
+      break-inside: avoid;
+    }
+  }
+
+  table {
+    page-break-inside: auto;
+  }
+  tr {
+    page-break-inside: avoid !important;
+    page-break-after: auto;
+  }
+  thead {
+    display: table-header-group;
+  }
+
+  .salto-pagina {
+    page-break-before: always; /* Fuerza el salto antes de este elemento */
+    margin-top: 20mm; /* Espacio opcional al inicio de la nueva hoja */
+  }
+}
