@@ -1,21 +1,22 @@
-import { Button, Card, Col } from "react-bootstrap";
+import { Button, Card, Col, Spinner } from "react-bootstrap";
 import { useContextStore } from "../stores/useContextStore";
 import useSilicaReportStore from "../stores/useSilicaReportStore";
 import type { PaintHandle } from "./Paint";
 import type { SilicaReport } from "../types";
 import { useSilica } from "../hooks/useSilica";
 import useUser from "../hooks/useUser";
-import { useEffect } from "react";
+import { useAuthStore } from "../stores/authStore";
 
 type Props = {
   paintRef: React.RefObject<PaintHandle | null>;
 };
 
 function ActionButtons({ paintRef }: Props) {
-  const { jobId } = useContextStore();
+  const { jobId, setIsLoaded } = useContextStore();
   const { silicaReport, reset, setFullDailyReport } = useSilicaReportStore();
-  const { mutate } = useSilica();
+  const { mutate, isPending: isSaving } = useSilica();
   const { data: currentUser } = useUser();
+  const { user: userAuth } = useAuthStore();
 
   const handleSave = () => {
     // validate
@@ -48,7 +49,7 @@ function ActionButtons({ paintRef }: Props) {
       return false;
     }
     // diagram
-    if (!silicaReport.diagramData) {
+    if (!paintRef?.current?.getDrawingData()) {
       alert("Please draw the silica hazard diagram.");
       return false;
     }
@@ -57,7 +58,13 @@ function ActionButtons({ paintRef }: Props) {
 
   const handleReset = () => {
     reset();
+    setIsLoaded(false);
   };
+
+  const isAuthorized = userAuth?.roles?.some(
+    (role) =>
+      role.name === "ROLE_SUPERVISOR" || role.name === "ROLE_SUPERINTENDENT",
+  );
 
   return (
     <>
@@ -103,10 +110,10 @@ function ActionButtons({ paintRef }: Props) {
                 onClick={() => {
                   handleSave();
                 }}
-                // disabled={isSaving}
+                disabled={isSaving || !isAuthorized}
                 className="no-print"
               >
-                {/* {isSaving ? (
+                {isSaving ? (
                   <>
                     <Spinner
                       as="span"
@@ -120,8 +127,7 @@ function ActionButtons({ paintRef }: Props) {
                   </>
                 ) : (
                   "Save"
-                )} */}
-                Save
+                )}
                 <i className="bi bi-floppy" style={{ margin: "6px" }}></i>
               </Button>
             </div>

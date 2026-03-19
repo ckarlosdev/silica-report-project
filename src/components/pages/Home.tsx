@@ -99,11 +99,15 @@ function Home() {
     if (jobIdParam || silicaIdParam) {
       const jId = Number(jobIdParam);
       const dId = Number(silicaIdParam);
+
       if (!isNaN(jId) || !isNaN(dId)) {
+        if (dId !== silicaId) {
+          setIsLoaded(false);
+        }
         setIds(jId, dId);
       }
     }
-  }, [searchParams, setIds]);
+  }, []);
 
   if (isLoading) return <p>Loading report data...</p>;
 
