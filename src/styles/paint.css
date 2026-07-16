@@ -63,6 +63,15 @@ h1 {
   border: 1px solid #ddd;
   border-radius: 4px;
   box-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+  /* Desactiva el menú contextual de "Guardar imagen / Copiar" en iOS */
+  -webkit-touch-callout: none;
+
+  /* Evita que el usuario seleccione la imagen como si fuera texto */
+  -webkit-user-select: none;
+  user-select: none;
+
+  /* Indica al navegador que no use gestos por defecto en estas imágenes */
+  touch-action: none;
 }
 .figure-palette img:active {
   cursor: grabbing;
@@ -84,11 +93,26 @@ h1 {
   border: 2px solid red;
 }
 
+.canvas-container {
+  width: 100%;
+  max-width: 900px; /* Evita que crezca más allá de su tamaño original */
+  margin: 0 auto; /* Centra el contenedor */
+  overflow: hidden; /* Evita cualquier desborde residual */
+}
+
+/* 2. Modificación de la regla canvas para hacerlo responsivo */
 canvas {
+  /* En lugar de un ancho fijo, ocupará el 100% de su contenedor */
+  width: 100%;
+  height: auto; /* Mantiene la proporción de aspecto (900x500) */
+
+  /* Mantenemos tus estilos originales */
+  max-width: 900px; /* Evita estiramientos innecesarios en pantallas gigantes */
   border: 2px solid #333;
   background-color: #fff;
-  cursor: crosshair; /* Cursor por defecto para dibujar */
-  touch-action: none; /* Crucial para evitar el scroll y zoom en móviles */
+  cursor: crosshair;
+  touch-action: none; /* Crucial para evitar el scroll y zoom en móviles/iPad */
+  display: block; /* Elimina espacios fantasma debajo del canvas */
 }
 
 /* Clase para el cursor de movimiento */
