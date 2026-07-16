@@ -116,6 +116,10 @@ const Paint = forwardRef<PaintHandle, {}>((_, ref) => {
     },
   }));
 
+  const preventLongPressMenu = (e: React.MouseEvent | React.TouchEvent) => {
+    e.preventDefault();
+  };
+
   return (
     <>
       <Card style={{ marginBottom: "2px" }}>
@@ -126,18 +130,30 @@ const Paint = forwardRef<PaintHandle, {}>((_, ref) => {
           <Row className="justify-content-md-center">
             <Col xs lg="12" md="auto">
               <div className="figure-palette" ref={figurePaletteRef}>
-                <img src={bocina} alt="Bocina" id="bocina" draggable="true" />
+                <img
+                  src={bocina}
+                  alt="Bocina"
+                  id="bocina"
+                  draggable="true"
+                  onContextMenu={preventLongPressMenu}
+                  // onTouchStart={(e) => {
+                  // Opcional: Si tienes una función onTouchStart manual para iniciar el ghost,
+                  // asegúrate de que use e.preventDefault()
+                  // }}
+                />
                 <img
                   src={sprayer}
                   alt="Sprayer"
                   id="sprayer"
                   draggable="true"
+                  onContextMenu={preventLongPressMenu}
                 />
                 <img
                   src={estrella}
                   alt="Estrella"
                   id="estrella"
                   draggable="true"
+                  onContextMenu={preventLongPressMenu}
                 />
               </div>
             </Col>
@@ -181,12 +197,14 @@ const Paint = forwardRef<PaintHandle, {}>((_, ref) => {
           </Row>
           <Row>
             <Col>
-              <canvas
-                id="drawingCanvas"
-                ref={canvasRef}
-                width="900"
-                height="500"
-              ></canvas>
+              <div className="canvas-container">
+                <canvas
+                  id="drawingCanvas"
+                  ref={canvasRef}
+                  width="900"
+                  height="500"
+                ></canvas>
+              </div>
             </Col>
           </Row>
           <Row>

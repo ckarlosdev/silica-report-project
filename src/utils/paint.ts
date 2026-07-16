@@ -10,6 +10,24 @@ import type {
 
 // Import necessary types, including Point
 
+const getCanvasCoordinates = (
+  clientX: number,
+  clientY: number,
+  canvas: HTMLCanvasElement,
+): Point => {
+  const rect = canvas.getBoundingClientRect();
+
+  // Calculamos la escala actual entre el tamaño de renderizado (CSS) y el tamaño interno
+  const scaleX = canvas.width / rect.width;
+  const scaleY = canvas.height / rect.height;
+
+  // Multiplicamos la posición relativa del click por el factor de escala
+  return {
+    x: (clientX - rect.left) * scaleX,
+    y: (clientY - rect.top) * scaleY,
+  };
+};
+
 export const initDrawingApp = (
   canvasElement: HTMLCanvasElement,
   figurePaletteElement: HTMLDivElement,
@@ -233,8 +251,9 @@ export const initDrawingApp = (
   updateCanvasCursor();
 
   canvasElement.addEventListener("mousedown", (e: MouseEvent) => {
-    const mouseX = e.offsetX;
-    const mouseY = e.offsetY;
+    const coords = getCanvasCoordinates(e.clientX, e.clientY, canvasElement);
+    const mouseX = coords.x;
+    const mouseY = coords.y;
     // console.log(`[MOUSE_DOWN] Coordenadas: (${mouseX}, ${mouseY})`);
     const currentTime = new Date().getTime();
 
@@ -289,11 +308,15 @@ export const initDrawingApp = (
   });
 
   canvasElement.addEventListener("mousemove", (e: MouseEvent) => {
+    const coords = getCanvasCoordinates(e.clientX, e.clientY, canvasElement);
+    const mouseX = coords.x;
+    const mouseY = coords.y;
+
     if (currentMode === "drawing" && isDrawing) {
       const currentLine = drawingElements[drawingElements.length - 1];
       if (currentLine && currentLine.type === "line") {
         // Ensure it's a line
-        currentLine.points.push({ x: e.offsetX, y: e.offsetY });
+        currentLine.points.push({ x: mouseX, y: mouseY });
         redrawCanvas();
       }
     } else if (currentMode === "moving" && selectedFigure) {
@@ -331,12 +354,6 @@ export const initDrawingApp = (
       // Ensure rotation is always a number
       selectedFigure.rotation = startAngle + rotationDelta;
       redrawCanvas();
-      // console.log(
-      //   `[MOUSE_MOVE] Rotating. Figure: ${selectedFigure.type}, Angle: ${(
-      //     (selectedFigure.rotation * 180) /
-      //     Math.PI
-      //   ).toFixed(2)} deg`
-      // );
     } else if (currentMode === "erasing" && isDrawing) {
       eraseAtPosition(e.offsetX, e.offsetY);
     }
@@ -441,8 +458,13 @@ export const initDrawingApp = (
         const imgWidth = DEFAULT_FIGURE_SIZE;
         const imgHeight = DEFAULT_FIGURE_SIZE;
 
-        const x = touch.clientX - rect.left - imgWidth / 2;
-        const y = touch.clientY - rect.top - imgHeight / 2;
+        const coords = getCanvasCoordinates(
+          touch.clientX,
+          touch.clientY,
+          canvasElement,
+        );
+        const x = coords.x - imgWidth / 2;
+        const y = coords.y - imgHeight / 2;
 
         if (
           loadedImageObjects[touchDraggedImage.id] &&
@@ -460,32 +482,13 @@ export const initDrawingApp = (
           };
           drawingElements.push(newFigure);
           redrawCanvas();
-          // console.log(
-          //   `[TOUCH_DRAG] Touch figure added: ${
-          //     newFigure.imageId
-          //   } at (${x.toFixed(0)}, ${y.toFixed(
-          //     0
-          //   )}) with size ${imgWidth}x${imgHeight}`
-          // );
-        } else {
-          console.warn(
-            "[TOUCH_DRAG] Could not drop touch image: Image not loaded (complete=false).",
-          );
         }
-      } else {
-        console.log("[TOUCH_DRAG] Image dropped outside canvas.");
       }
       touchDraggedImage = null;
     }
     selectedFigure = null;
     currentMode = "drawing"; // Reset mode after touch end
     updateCanvasCursor();
-    // console.log(
-    //   "Touch mode ended (touchend):",
-    //   currentMode,
-    //   "Selected figure:",
-    //   selectedFigure
-    // );
   });
 
   canvasElement.addEventListener(
@@ -494,53 +497,42 @@ export const initDrawingApp = (
       e.preventDefault();
 
       const touch = e.touches[0];
-      const rect = canvasElement.getBoundingClientRect();
-      const touchX = touch.clientX - rect.left;
-      const touchY = touch.clientY - rect.top;
+      const coords = getCanvasCoordinates(
+        touch.clientX,
+        touch.clientY,
+        canvasElement,
+      );
+      const touchX = coords.x;
+      const touchY = coords.y;
       const currentTime = new Date().getTime();
-
-      // console.log(`[CANVAS TOUCH_START] Coords: (${touchX}, ${touchY})`);
-      // console.log(`[CANVAS TOUCH_START] Current mode: ${currentMode}`);
 
       if (touchTimeout) {
         clearTimeout(touchTimeout);
         touchTimeout = null;
-        // console.log("[TOUCH_START] touchTimeout cleared.");
       }
 
       if (currentMode === "erasing") {
         isDrawing = true;
         eraseAtPosition(touchX, touchY);
-        // console.log("[TOUCH_START] Mode: Eraser, erasing at", touchX, touchY);
         lastTouchTime = currentTime;
         updateCanvasCursor();
         return;
       }
 
       selectedFigure = getFigureAtPosition(touchX, touchY);
-      // console.log(
-      //   "[TOUCH_START] Figure selected by getFigureAtPosition:",
-      //   selectedFigure ? selectedFigure.type : "none"
-      // );
 
       if (selectedFigure) {
         const timeDiff = currentTime - lastTouchTime;
-        // console.log(
-        //   `[TOUCH_START] timeDiff: ${timeDiff}, DBL_CLICK_THRESHOLD: ${DBL_CLICK_THRESHOLD}`
-        // );
 
         if (timeDiff < DBL_CLICK_THRESHOLD) {
           currentMode = "rotating";
           startRotationClientX = touch.clientX;
           startRotationClientY = touch.clientY;
-          // Ensure selectedFigure.rotation is a number; default to 0 if undefined
           startAngle = selectedFigure.rotation || 0;
-          // console.log("[TOUCH_START] Mode: Rotating (double tap detected)");
         } else {
           currentMode = "moving";
           startDragOffsetX = touchX - selectedFigure.x;
           startDragOffsetY = touchY - selectedFigure.y;
-          // console.log("[TOUCH_START] Mode: Moving (single tap on figure)");
         }
       } else {
         currentMode = "drawing";
@@ -570,9 +562,13 @@ export const initDrawingApp = (
     (e: TouchEvent) => {
       e.preventDefault();
       const touch = e.touches[0];
-      const rect = canvasElement.getBoundingClientRect();
-      const touchX = touch.clientX - rect.left;
-      const touchY = touch.clientY - rect.top;
+      const coords = getCanvasCoordinates(
+        touch.clientX,
+        touch.clientY,
+        canvasElement,
+      );
+      const touchX = coords.x;
+      const touchY = coords.y;
 
       if (currentMode === "drawing" && isDrawing) {
         const currentLine = drawingElements[drawingElements.length - 1];
@@ -588,12 +584,8 @@ export const initDrawingApp = (
         selectedFigure.x = newX;
         selectedFigure.y = newY;
         redrawCanvas();
-        // console.log(
-        //   `[TOUCH_MOVE] Moving figure: ${
-        //     selectedFigure.imageId
-        //   } to (${newX.toFixed(0)}, ${newY.toFixed(0)})`
-        // );
       } else if (currentMode === "rotating" && selectedFigure) {
+        const rect = canvasElement.getBoundingClientRect();
         const figureCenterX = selectedFigure.x + selectedFigure.width / 2;
         const figureCenterY = selectedFigure.y + selectedFigure.height / 2;
 
@@ -620,12 +612,6 @@ export const initDrawingApp = (
         // Ensure rotation is always a number
         selectedFigure.rotation = startAngle + rotationDelta;
         redrawCanvas();
-        // console.log(
-        //   `[TOUCH_MOVE] Rotating. Figure: ${selectedFigure.type}, Angle: ${(
-        //     (selectedFigure.rotation * 180) /
-        //     Math.PI
-        //   ).toFixed(2)} deg`
-        // );
       } else if (currentMode === "erasing" && isDrawing) {
         eraseAtPosition(touchX, touchY);
       }
@@ -806,19 +792,18 @@ export const initDrawingApp = (
 
   canvasElement.addEventListener("drop", (e: DragEvent) => {
     e.preventDefault();
-    // console.log("[DRAG] Drop event on canvas.");
 
     if (
       draggedImage &&
       loadedImageObjects[draggedImage.id] &&
       loadedImageObjects[draggedImage.id].complete
     ) {
-      const rect = canvasElement.getBoundingClientRect();
       const imgWidth = DEFAULT_FIGURE_SIZE;
       const imgHeight = DEFAULT_FIGURE_SIZE;
 
-      const x = e.clientX - rect.left - imgWidth / 2;
-      const y = e.clientY - rect.top - imgHeight / 2;
+      const coords = getCanvasCoordinates(e.clientX, e.clientY, canvasElement);
+      const x = coords.x - imgWidth / 2;
+      const y = coords.y - imgHeight / 2;
 
       const newFigure: ImageDrawingElement = {
         type: "figure",
